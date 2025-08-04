@@ -52,7 +52,7 @@ func toBase64(s []byte) string {
 }
 
 func getScopes() string {
-	scopes := []string{"streaming"}
+	scopes := []string{"streaming", "user-modify-playback-state", "user-read-playback-state"}
 	var builder strings.Builder
 	builder.Grow(len(scopes))
 	for _, scope := range scopes {
@@ -60,6 +60,7 @@ func getScopes() string {
 		builder.WriteRune(' ')
 	}
 	res := builder.String()
+	fmt.Println(res[:len(res)-1])
 	return res[:len(res)-1]
 }
 

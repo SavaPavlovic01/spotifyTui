@@ -12,7 +12,7 @@ type PlayCommand struct{}
 
 func (pc PlayCommand) Name() string { return "p" }
 
-func (pc PlayCommand) Description() string { return "Start playback" }
+func (pc PlayCommand) Description() string { return "Pause playback" }
 
 func (pc PlayCommand) Exec(token *auth.FreshToken, args []string) error {
 	req, err := http.NewRequest(http.MethodPut, "https://api.spotify.com/v1/me/player/pause", http.NoBody)

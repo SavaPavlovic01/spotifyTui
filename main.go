@@ -13,5 +13,5 @@ func main() {
 		tokens = auth.InitialAuth()
 	}
 	fmt.Println(tokens)
-	_ = commands.CommandRegistry["p"].Exec(tokens, []string{})
+	_ = commands.CommandRegistry["s"].Exec(tokens, []string{})
 }

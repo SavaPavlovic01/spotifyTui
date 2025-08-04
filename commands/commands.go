@@ -1,7 +1,10 @@
 package commands
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 
 	"example.com/m/v2/auth"
 )
@@ -43,4 +46,40 @@ func registerCommand(command Command) {
 		fmt.Println("Command with the name " + command.Name() + " alredy exists")
 	}
 	CommandRegistry[command.Name()] = withAuth(command) // does everything need auth?
+}
+
+type DeviceInfo struct {
+	Id               string  `json:"id"`
+	IsActive         bool    `json:"is_active"`
+	IsPrivateSession bool    `json:"is_private_session"`
+	IsRestrited      bool    `json:"is_resticted"`
+	Name             string  `json:"name"`
+	Type             string  `json:"type"`
+	VolumePercent    float64 `json:"volume_percent"`
+	SupportsVolume   bool    `json:"supports_volume"`
+}
+
+func getDevices(token *auth.FreshToken) ([]DeviceInfo, error) {
+
+	req, err := http.NewRequest(http.MethodGet, "https://api.spotify.com/v1/me/player/devices", http.NoBody)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", " Bearer "+token.AccessToken)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode > 204 {
+		// TODO: Add parseError func or something like that
+		fmt.Println("ERROR on change playback")
+		body, _ := io.ReadAll(resp.Body)
+		fmt.Println(string(body))
+	}
+	var info []DeviceInfo
+	data, _ := io.ReadAll(resp.Body)
+	_ = json.Unmarshal(data, &info)
+	defer resp.Body.Close()
+	return info, nil
 }
