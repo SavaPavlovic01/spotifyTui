@@ -60,7 +60,6 @@ func getScopes() string {
 		builder.WriteRune(' ')
 	}
 	res := builder.String()
-	fmt.Println(res[:len(res)-1])
 	return res[:len(res)-1]
 }
 
@@ -142,7 +141,6 @@ func makePostRequestForTokens(params map[string]string) FreshToken {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(Payload.Access_token, Payload.Refresh_token, Payload.Expires_in)
 	expires_at := time.Now().Add(time.Second * time.Duration(int(Payload.Expires_in))).UnixMilli()
 	return FreshToken{AccessToken: Payload.Access_token, RefreshToken: Payload.Refresh_token, ExpiresIn: int(expires_at)}
 }
@@ -167,7 +165,6 @@ type FreshToken struct {
 func startHttpServer(tokenChan chan FreshToken, verifier string) func() error {
 	mux := http.NewServeMux()
 	httpWaitForToken := func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("received request")
 		code := r.URL.Query().Get("code")
 		tokens := getToken(code, verifier)
 		tokenChan <- tokens
@@ -221,17 +218,18 @@ func LoadTokens() (*FreshToken, error) {
 func (ft *FreshToken) RefreshTokens() {
 	headers := map[string]string{
 		"grant_type":    "refresh_token",
-		"client_id":     "c70ac4ad86994ae2aebe9b0da5d708eb",
 		"refresh_token": ft.RefreshToken,
+		"client_id":     "c70ac4ad86994ae2aebe9b0da5d708eb",
 	}
 	newTokens := makePostRequestForTokens(headers)
 	ft.AccessToken = newTokens.AccessToken
 	ft.RefreshToken = newTokens.RefreshToken
 	ft.ExpiresIn = newTokens.ExpiresIn
+	writeTokens(*ft)
 }
 
 func (ft *FreshToken) Expired() bool {
-	return int64(ft.ExpiresIn)-time.Now().UnixMilli() < 60_000
+	return true //return int64(ft.ExpiresIn)-time.Now().UnixMilli() < 60_000
 }
 
 func InitialAuth() *FreshToken {

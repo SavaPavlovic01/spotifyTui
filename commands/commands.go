@@ -59,7 +59,7 @@ type DeviceInfo struct {
 	SupportsVolume   bool    `json:"supports_volume"`
 }
 
-func getDevices(token *auth.FreshToken) ([]DeviceInfo, error) {
+func GetDevices(token *auth.FreshToken) ([]DeviceInfo, error) {
 
 	req, err := http.NewRequest(http.MethodGet, "https://api.spotify.com/v1/me/player/devices", http.NoBody)
 	if err != nil {
@@ -77,9 +77,11 @@ func getDevices(token *auth.FreshToken) ([]DeviceInfo, error) {
 		body, _ := io.ReadAll(resp.Body)
 		fmt.Println(string(body))
 	}
-	var info []DeviceInfo
+	var info struct {
+		List []DeviceInfo `json:"devices"`
+	}
 	data, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(data, &info)
 	defer resp.Body.Close()
-	return info, nil
+	return info.List, nil
 }
