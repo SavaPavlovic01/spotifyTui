@@ -14,7 +14,7 @@ func main() {
 	}
 	fmt.Println(tokens)
 	//_ = commands.CommandRegistry["s"].Exec(tokens, []string{})
-	err = commands.CommandRegistry["s"].Exec(tokens, []string{})
+	err = commands.CommandRegistry["b"].Exec(tokens, []string{})
 	if err != nil {
 		panic(err)
 	}
