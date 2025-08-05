@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
+	"net/url"
 
 	"example.com/m/v2/auth"
 )
@@ -18,17 +18,17 @@ type SpotRequest struct {
 	rawJson     any
 	hasJson     bool
 	headers     map[string]string
-	queryParams map[string]string
+	queryParams url.Values
 }
 
-func NewSpotRequest(method string, url string) *SpotRequest {
+func NewSpotRequest(method string, endpointUrl string) *SpotRequest {
 	return &SpotRequest{
 		Method:      method,
-		Url:         url,
+		Url:         endpointUrl,
 		Body:        http.NoBody,
 		hasJson:     false,
 		headers:     map[string]string{},
-		queryParams: map[string]string{},
+		queryParams: url.Values{},
 	}
 }
 
@@ -44,7 +44,7 @@ func (sr *SpotRequest) WithHeader(key, value string) *SpotRequest {
 }
 
 func (sr *SpotRequest) WithQueryParam(key, value string) *SpotRequest {
-	sr.queryParams[key] = value
+	sr.queryParams.Add(key, value)
 	return sr
 }
 
@@ -66,17 +66,7 @@ func (sr *SpotRequest) Do() (*http.Response, error) {
 	}
 
 	if len(sr.queryParams) > 0 {
-		var builder strings.Builder
-		builder.WriteString(sr.Url)
-		builder.WriteRune('?')
-		for key, value := range sr.queryParams {
-			builder.WriteString(key)
-			builder.WriteRune('=')
-			builder.WriteString(value)
-			builder.WriteRune('&')
-		}
-		realUrl := builder.String()
-		sr.Url = realUrl[:len(realUrl)-1]
+		sr.Url += "?" + sr.queryParams.Encode()
 	}
 
 	req, err := http.NewRequest(sr.Method, sr.Url, sr.Body)
@@ -102,4 +92,9 @@ func ValidateResponse(resp *http.Response, err error) error {
 	}
 
 	return nil
+}
+
+func (sr *SpotRequest) WithPath(path string) *SpotRequest {
+	sr.Url += "/" + path
+	return sr
 }

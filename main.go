@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"example.com/m/v2/auth"
 	"example.com/m/v2/commands"
 )
@@ -12,9 +10,9 @@ func main() {
 	if err != nil {
 		tokens = auth.InitialAuth()
 	}
-	fmt.Println(tokens)
 	//_ = commands.CommandRegistry["s"].Exec(tokens, []string{})
-	err = commands.CommandRegistry["b"].Exec(tokens, []string{})
+	err = commands.CommandRegistry["saa"].Exec(tokens, []string{"dev lemons"})
+
 	if err != nil {
 		panic(err)
 	}

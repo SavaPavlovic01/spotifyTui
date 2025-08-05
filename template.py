@@ -33,7 +33,7 @@ def create_command_file(command_name, description = ""):
         print(f"File '{file_path}' already exists.")
         return
 
-    content = TEMPLATE.format(command_name= command_name.capitalize(), first_letter = command_name[0], command_description = description)
+    content = TEMPLATE.format(command_name= command_name, first_letter = command_name[0], command_description = description)
 
     with open(file_path, "w") as f:
         f.write(textwrap.dedent(content))
