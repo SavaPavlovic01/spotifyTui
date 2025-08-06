@@ -51,11 +51,11 @@ func registerCommand(command Command) {
 }
 
 type TrackInfo struct {
-	Name    string       `json:"name"`
-	Id      string       `json:"id"`
-	Album   AlbumInfo    `json:"album"`
-	Artists []ArtistInfo `json:"artists"`
-	Uri     string       `json:"uri"`
+	Name    string        `json:"name"`
+	Id      string        `json:"id"`
+	Album   AlbumInfo     `json:"album"`
+	Artists []*ArtistInfo `json:"artists"`
+	Uri     string        `json:"uri"`
 }
 
 type AlbumInfo struct {
@@ -223,7 +223,7 @@ func (ti TrackInfo) GetDescription() string {
 		builder.WriteString(", ")
 	}
 	artists := builder.String()
-	return fmt.Sprintf("%s - %s", artists[:len(artists)-1], ti.Name)
+	return fmt.Sprintf("%s - %s", artists[:len(artists)-2], ti.Name)
 }
 
 func (ai AlbumInfo) Play(token *auth.FreshToken) error {
@@ -248,4 +248,50 @@ func Interactive(token *auth.FreshToken, items []Playable) error {
 		return fmt.Errorf("OUT OF BOUNDS")
 	}
 	return items[index-1].Play(token)
+}
+
+func GetCurrentTrack(token *auth.FreshToken) (TrackInfo, error) {
+	resp, err := NewSpotRequest(http.MethodGet, "https://api.spotify.com/v1/me/player/currently-playing").WithAuth(token).Do()
+	err = ValidateResponse(resp, err)
+	if err != nil {
+		return TrackInfo{}, err
+	}
+
+	var response struct {
+		Info TrackInfo `json:"item"`
+	}
+
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return TrackInfo{}, err
+	}
+
+	err = json.Unmarshal(body, &response)
+	return response.Info, err
+}
+
+func GetAlbumTracks(token *auth.FreshToken, albumUri string) ([]TrackInfo, error) {
+	url := "https://api.spotify.com/v1/albums/" + getIdFromUri(albumUri) + "/tracks"
+	resp, err := NewSpotRequest(http.MethodGet, url).WithAuth(token).Do()
+	err = ValidateResponse(resp, err)
+	if err != nil {
+		return []TrackInfo{}, err
+	}
+
+	var response struct {
+		Items []TrackInfo `json:"items"`
+	}
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return []TrackInfo{}, err
+	}
+
+	err = json.Unmarshal(data, &response)
+	if err != nil {
+		return []TrackInfo{}, err
+	}
+
+	return response.Items, nil
 }

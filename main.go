@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
@@ -38,6 +39,11 @@ func main() {
 	input := ParseInput()
 	if len(os.Args) == 1 {
 		panic("Pls send a command")
+	}
+
+	if _, ok := commands.CommandRegistry[os.Args[1]]; !ok {
+		fmt.Println("Invalid command")
+		return
 	}
 
 	err = commands.CommandRegistry[os.Args[1]].Exec(tokens, input)
