@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -194,15 +195,33 @@ func writeTokens(token FreshToken) error {
 	if err != nil {
 		panic(err)
 	}
-	err = os.WriteFile("data.tok", data, 0600)
+	path, err := getTokenFilePath()
+	if err != nil {
+		return err
+	}
+	err = os.WriteFile(path, data, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to write token to file")
 	}
 	return nil
 }
 
+func getTokenFilePath() (string, error) {
+	exePath, err := os.Executable()
+	if err != nil {
+		return "", fmt.Errorf("Failed to get path")
+	}
+	exeDir := filepath.Dir(exePath)
+	return filepath.Join(exeDir, "data.tok"), nil
+}
+
 func LoadTokens() (*FreshToken, error) {
-	data, err := os.ReadFile("data.tok")
+	path, err := getTokenFilePath()
+	fmt.Print(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read tokens, doing auth flow")
+	}
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read tokens, doing auth flow")
 	}
